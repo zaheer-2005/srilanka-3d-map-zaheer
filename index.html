@@ -1,49 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sri Lanka 3D Map with Auto Routing</title>
-    
-    <!-- MapLibre GL JS -->
-    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+/* Weather Badge inside Marker */
+.weather-marker {
+    background: rgba(15, 23, 42, 0.85);
+    border: 2px solid #00b4d8;
+    border-radius: 20px;
+    padding: 4px 8px;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.weather-marker img {
+    width: 20px;
+    height: 20px;
+}
 
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
-</head>
-<body>
-
-    <!-- Main Dashboard -->
-    <div class="ui-panel" id="main-panel">
-        <div class="panel-header">
-            <h1>Ceylon Navigation</h1>
-            <button class="min-max-btn" onclick="togglePanel()">➖</button>
-        </div>
-        <p>Explore & Find Routes across Sri Lanka</p>
-        
-        <!-- Route Finder Section -->
-        <div class="route-box">
-            <label>🛫 Start Location:</label>
-            <select id="start-loc" onchange="calculateRoute()"></select>
-            
-            <label>🛬 End Location:</label>
-            <select id="end-loc" onchange="calculateRoute()"></select>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-
-        <div class="location-list" id="location-list"></div>
-    </div>
-
-    <!-- Floating Maximize Button (When panel is minimized) -->
-    <button class="floating-max-btn" id="max-btn" onclick="togglePanel()" style="display: none;">🗺️ Open Panel</button>
-
-    <!-- Map Container -->
-    <div id="map"></div>
-
-</body>
-</html>
+/* Car Animation Style */
+.car-animator {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s linear;
+    width: 30px;
+    height: 30px;
+    z-index: 5;
+}
