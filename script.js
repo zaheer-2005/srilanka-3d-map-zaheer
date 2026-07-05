@@ -1,6 +1,3 @@
-// MapTiler API Key (If you have one, put it here. Otherwise it uses OpenFreeMap)
-const MAPTILER_KEY = 'YOUR_MAPTILER_API_KEY'; 
-
 const currentHour = new Date().getHours();
 const isNight = currentHour >= 18 || currentHour < 6; 
 
@@ -80,6 +77,116 @@ function populateDropdowns() {
     
     startSelect.innerHTML = '';
     endSelect.innerHTML = '';
+
+    tourismLocations.forEach(loc => {
+        startSelect.options[startSelect.options.length] = new Option(loc.name, loc.id);
+        endSelect.options[endSelect.options.length] = new Option(loc.name, loc.id);
+    });
+    
+    startSelect.selectedIndex = 4; // Default Start: Colombo
+    endSelect.selectedIndex = 5;   // Default End: Kurunegala
+    
+    // Calculate initial route once loaded
+    calculateRoute();
+}
+
+async function calculateRoute() {
+    const startId = document.getElementById('start-loc').value;
+    const endId = document.getElementById('end-loc').value;
+
+    const startCoords = tourismLocations[startId].coords;
+    const endCoords = tourismLocations[endId].coords;
+
+    const url = `https://router.project-osrm.org/route/v1/driving/${startCoords[0]},${startCoords[1]};${endCoords[0]},${endCoords[1]}?overview=full&geometries=geojson`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if(data.routes && data.routes.length > 0) {
+            const routeCoordinates = data.routes[0].geometry.coordinates;
+            drawRoute(routeCoordinates);
+            animateCar(routeCoordinates); 
+        }
+    } catch (error) {
+        console.error("Routing error:", error);
+    }
+}
+
+function drawRoute(coordinates) {
+    if (map.getLayer('route')) map.removeLayer('route');
+    if (map.getSource('route')) map.removeSource('route');
+
+    map.addSource('route', {
+        'type': 'geojson',
+        'data': {
+            'type': 'Feature',
+            'properties': {},
+            'geometry': { 'type': 'LineString', 'coordinates': coordinates }
+        }
+    });
+
+    map.addLayer({
+        'id': 'route',
+        'type': 'line',
+        'source': 'route',
+        'layout': { 'line-join': 'round', 'line-cap': 'round' },
+        'paint': { 'line-color': '#00b4d8', 'line-width': 5, 'line-opacity': 0.85 }
+    });
+
+    const bounds = coordinates.reduce((acc, coord) => acc.extend(coord), new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+    map.fitBounds(bounds, { padding: 50 });
+}
+
+function animateCar(coordinates) {
+    if (animationId) cancelAnimationFrame(animationId);
+    if (carMarker) carMarker.remove();
+
+    const carEl = document.createElement('div');
+    carEl.className = 'car-animator';
+    carEl.innerHTML = '🚗';
+
+    carMarker = new maplibregl.Marker(carEl)
+        .setLngLat(coordinates[0])
+        .addTo(map);
+
+    let progress = 0;
+    const speed = 1.5; 
+
+    function step() {
+        if (progress >= coordinates.length - 1) { progress = 0; }
+        const start = coordinates[Math.floor(progress)];
+        const end = coordinates[Math.min(Math.floor(progress) + 1, coordinates.length - 1)];
+        if (!start || !end) return;
+
+        const bearing = Math.atan2(end[1] - start[1], end[0] - start[0]) * 180 / Math.PI;
+        carEl.style.transform = `rotate(${90 - bearing}deg)`;
+        carMarker.setLngLat(start);
+
+        progress += (speed / 10);
+        animationId = requestAnimationFrame(step);
+    }
+    step();
+}
+
+function flyToLocation(loc) {
+    map.flyTo({ center: loc.coords, zoom: 12, pitch: 50, speed: 1.2, essential: true });
+}
+
+window.togglePanel = function() {
+    const panel = document.getElementById('main-panel');
+    const maxBtn = document.getElementById('max-btn');
+    if (!panel || !maxBtn) return;
+    
+    if (panel.style.display === 'none') {
+        panel.style.display = 'flex';
+        maxBtn.style.display = 'none';
+    } else {
+        panel.style.display = 'none';
+        maxBtn.style.display = 'block';
+    }
+}
+
 
     tourismLocations.forEach(loc => {
         startSelect.options[startSelect.options.length] = new Option(loc.name, loc.id);
